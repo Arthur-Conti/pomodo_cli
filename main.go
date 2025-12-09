@@ -2,30 +2,28 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
+
+	"github.com/Arthur-Conti/pomodo_cli/models"
+	"github.com/Arthur-Conti/pomodo_cli/styles"
+	"github.com/Arthur-Conti/pomodo_cli/ticker"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
-	totalTime := 5 * time.Second
-
-	ticker := time.NewTicker(time.Second * 1)
-	defer ticker.Stop()
-
-	for range totalTime {
-		select {
-		case <- ticker.C: 
-			totalTime -= time.Second * 1
-			if totalTime <= 0 {
-				fmt.Print("\033[H\033[2J") // Limpa a tela
-				fmt.Println("POMODORO FINALIZADO! 🍅")
-				return // Sai do programa
-			}
-			
-			minutes := int(totalTime.Minutes())
-			seconds := int(totalTime.Seconds()) % 60
-			
-			fmt.Print("\033[H\033[2J") // Limpa a tela
-			fmt.Printf("Tempo restante: %02d:%02d\n", minutes, seconds)
-		}
+	// Cria e roda o programa Bubbletea
+	p := tea.NewProgram(setup())
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Erro ao rodar o programa: %v", err)
+		os.Exit(1)
 	}
+}
+
+func setup() *models.Model {
+	style := styles.NewStyle()
+	tickInterval := 1 * time.Second
+	tick := ticker.NewTicker(tickInterval)
+	modelOpts := models.BaseModelOpts(*tick, *style)
+	return models.NewModel(modelOpts)
 }
